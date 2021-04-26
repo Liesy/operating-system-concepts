@@ -7,7 +7,7 @@
 #include<sys/sem.h>
 #include<sys/msg.h>
 
-#define BUFSIZE 256
+#define BUFSZ 256
 
 //建立或获取ipc的一组函数的原型说明
 int get_ipc_id(char* proc_file,key_t key);

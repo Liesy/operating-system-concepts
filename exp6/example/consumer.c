@@ -23,7 +23,7 @@ int main(int argc,char* argv[]){
     pmtx_key = 202; //生产者互斥信号灯键值
     cons_key = 301; //消费者同步信号灯键值
     cmtx_key = 302; //消费者互斥信号灯键值
-    sem_flg = IPC_CREAT | 0644; //信号灯操作权限
+    sem_flg = IPC_CREAT|0644; //信号灯操作权限
     //生产者同步信号灯初值设为缓冲区最大可用量
     sem_val = buff_num;
     //获取生产者同步信号灯，引用标识存prod_sem

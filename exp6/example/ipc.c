@@ -7,7 +7,7 @@
 int get_ipc_id(char* proc_file,key_t key){
     FILE* pf;
     int i,j;
-    char line[BUFSIZE],colunm[BUFSIZE];
+    char line[BUFSZ],colunm[BUFSZ];
 
     pf==fopen(proc_file,"r");
     if(pf=NULL){
@@ -15,10 +15,10 @@ int get_ipc_id(char* proc_file,key_t key){
         exit(EXIT_FAILURE);
     }
 
-    fgets(line,BUFSIZE,pf);
+    fgets(line,BUFSZ,pf);
     while(!feof(pf)){
         i=j=0;
-        fgets(line,BUFSIZE,pf);
+        fgets(line,BUFSZ,pf);
         while(line[i]==' ')
             i++;
         while(line[i]!=' ')
