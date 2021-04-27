@@ -26,4 +26,4 @@ producer:   $(f_obj)
 producer.o:     $(f_src) $(hdrs)
 	gcc $(opts) $(f_src)
 clean:
-	rm glue producer paper tobaco *.o
+	rm glue producer paper tobacco *.o
