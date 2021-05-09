@@ -6,14 +6,16 @@
 #include <sys/shm.h>
 #include <sys/sem.h>
 #include <sys/msg.h>
-#define BUFSZ 256
 
+#define BUFSZ 256
 #define MAXVAL 100
 #define STRSIZ 8
 
 #define WRITERQUEST 1 //写请求标识
 #define READERQUEST 2 //读请求标识
 #define FINISHED 3    //读写完成标识
+#define SOFA 4//沙发
+#define WAIT 5//等候室
 
 /*信号灯控制用的共同体*/
 typedef union semuns{
@@ -48,3 +50,21 @@ int set_sem(key_t sem_key,int sem_val,int sem_flag);
 int down(int sem_id);
 
 int up(int sem_id);
+
+int sem_flg;
+
+key_t s_account_key;
+int s_account_val;
+int s_account_sem;
+
+key_t s_customer_key;
+int s_customer_val;
+int s_customer_sem;
+
+int q_flg;
+
+key_t q_sofa_key;
+int q_sofa_id;
+
+key_t q_wait_key;
+int q_wait_id;
