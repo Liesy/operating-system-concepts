@@ -8,20 +8,12 @@
 #include <sys/sem.h>
 #include <sys/msg.h>
 #include <sys/wait.h>
-#include <time.h>
-using namespace std;
-
 /*信号灯控制用的共同体*/
 typedef union semuns{
     int val;
 } Sem_uns;
 
-enum State{
-    waitt,
-    run
-};
-
-//火车站管程中使用的信号量
+//管程中使用的信号量
 class Sema{
 public:
     Sema(int id);
@@ -32,7 +24,7 @@ private:
     int sem_id; //信号量标识符
 };
 
-//火车站管程中使用的锁
+//管程中使用的锁
 class Lock{
 public:
     Lock(Sema *lock);
@@ -43,40 +35,44 @@ private:
     Sema *sema; //锁使用的信号量
 };
 
-//火车站管程中使用的条件变量
 class Condition{
 public:
-    Condition(char *st[], Sema *sm);
+    Condition(Sema *sema1, Sema *sema2);
     ~Condition();
-    void Wait(Lock *lock, int i); //条件变量阻塞操作
-    void Signal(int i);           //条件变量唤醒操作
+    void Wait(Lock *conditionLock, int direct); //过路条件不足时阻塞
+    int Signal(int direc);
+    //唤醒相反方向阻塞车辆
 private:
-    Sema *sema;
-    char **state;
+    Sema *sema0; // 一个方向阻塞队列
+    Sema *sema1; // 另一方向阻塞队列
+    Lock *lock;  // 进入管程时获取的锁
 };
 
-//火车站管程的定义
-class dp{
+class OneWay{
 public:
-    int *maxcars; //最大火车数
-    int *nowcars; //当前已经通过的火车数
-
-    int *sumeast; //当前已经通过的由东向西的火车数
-    int *sumwest; //当前已经通过的由西向东的火车数
-
-    dp(int rate, int maxcur); //管程构造函数
-    ~dp();
-    void start(int i); //发车
-    void quit(int i);  //火车通过后离开
-
+    OneWay(int maxall, int maxcur);
+    ~OneWay();
+    void Arrive(int direc);
+    // 车辆准备上单行道,direc 为行车方向
+    void Cross(int direc);
+    // 车辆正在单行道上
+    void Quit(int direc);
+    // 车辆通过了单行道
+    int *eastCount;
+    int *westCount;
+    int *eastWait;
+    int *westWait;
+    int *sumPassedCars; //已经通过的车辆总数
+private:
     //建立或获取 ipc 信号量的一组函数的原型说明
     int get_ipc_id(char *proc_file, key_t key);
     int set_sem(key_t sem_key, int sem_val, int sem_flag);
+    //创建共享内存
     char *set_shm(key_t shm_key, int shm_num, int shm_flag);
-private:
-    int rate; //车速
-    Lock *lock;
-    char *state[2];     //两个火车站的状态
-    int cnt[2];         //火车站同时发送火车的数量
-    Condition *self[2]; //火车站条件变量
+    int rate;             //车速
+    int *maxCars;         //最大同向车数
+    int *numCars;         //当前正在通过的车辆数
+    int *currentDire;     //当前通过的车辆的方向
+    Condition *condition; //通过单行道的条件变量
+    Lock *lock;           //单行道管程锁
 };
