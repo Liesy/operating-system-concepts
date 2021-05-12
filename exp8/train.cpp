@@ -1,3 +1,4 @@
+//https://blog.csdn.net/LeeviFang/article/details/106272738
 #include "train.h"
 using namespace std;
 #define BUFSZ 256
@@ -172,15 +173,11 @@ Condition::Condition(Sema *semax1,Sema *semax2){
 void Condition::Wait(Lock *lock,int direc){
     if(direc == 0){
         cout<<getpid()<<"等待, 向东"<<endl;
-        //lock->open_lock();
         sema0->down();
-        //lock->close_lock();
     }
     else if(direc==1){
         cout<<getpid()<<"等待, 向西"<<endl;
-       // lock->open_lock();
         sema1->down();
-       // lock->close_lock();
     }
 }
 int Condition::Signal(int direc){
@@ -234,7 +231,7 @@ OneWay::OneWay(int maxall,int maxcur){
 }
 void OneWay::Arrive(int direc){
     lock1->close_lock();//FIFO,if lock1 is already taken by a different direction,then stop and wait
-    if((*currentDire!=direc||*numCars>=*maxCars)&*sumPassedCars>0)
+    if((*currentDire!=direc||*numCars>=*maxCars)&&*sumPassedCars>0)
     {
         if(direc==0){
             *eastWait+=1;
@@ -250,7 +247,7 @@ void OneWay::Arrive(int direc){
             *westWait-=1;
         }
     
-    }// cout<<"ddddd"<<endl;
+    }
     *currentDire=direc;
     *numCars=*numCars+1;
     *sumPassedCars+=1; 
@@ -268,17 +265,13 @@ void OneWay::Arrive(int direc){
     
 }
 void OneWay::Cross(int direc){
-    //lock2->close_lock();
     if(direc==0){
-        cout<<getpid()<<"通过 ,向东, 轨道上车辆数:"
-        <<*numCars<<endl;
+        cout<<getpid()<<"通过,向东"<<endl;
     }
     else if(direc==1){
-        cout<<getpid()<<"通过 ,向西, 轨道上车辆数:"
-        <<*numCars<<endl;
+        cout<<getpid()<<"通过,向西"<<endl;
     }
-    sleep(4);
-    //lock2->open_lock();
+    sleep(2);
 }
 void OneWay::Quit(int direc){
     lock3->close_lock();
@@ -288,7 +281,6 @@ void OneWay::Quit(int direc){
     }else if(direc==1){
         cout<<getpid()<<"离开车站, 向西"<<endl;
     }
-    //cout<<*numCars<<endl;
     if(*numCars==0){
         if(direc==0){
             if(*westWait>0){
