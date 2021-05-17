@@ -142,26 +142,208 @@ void Replace::Fifo(void)
 }
 
 //时钟(二次机会）置换算法
-void Replace::Clock(void) {
+void Replace::Clock(void)
+{
+    int j, i, k, l, next;
+    InitSpace("Clock");
+    for (k = 0, j = l = 0; k < PageNumber; k++)
+    {
+        next = ReferencePage[k];
+        for (i = 0; i < FrameNumber; i++)
+            //检测引用页当前是否已在实存
+            if (next == PageFrames[i])
+            {
+                Referencebit[i] = 1; //引用位设置为1
+                break;
+            }
+        if (i < FrameNumber)
+        {
+            for (i = 0; i < FrameNumber; i++)
+                cout << PageFrames[i] << " ";
+            cout << endl;
+            continue;
+        }
+        if (Referencebit[j] == 1)         //如果引用位为1
+            Referencebit[j] == 0;         //在判断之后，重新设置成0
+        EliminatePage[l] = PageFrames[j]; //最先入页号记入淘汰页数组
+        PageFrames[j] = next;             //引用页号放最先入页号处
+        Referencebit[j] = 1;              //引用位设置为1
+        FaultNumber++;                    //缺页数加1
+        j = (j + 1) % FrameNumber;        //最先入页号循环下移
+        for (i = 0; i < FrameNumber; i++)
+            if (PageFrames[i] >= 0)
+                cout << PageFrames[i] << " ";
+        if (EliminatePage[l] >= 0)
+            cout << "->" << EliminatePage[l++] << endl;
+        else
+            cout << endl;
+    }
+    Report();
 }
 
 //增强二次机会置换算法
-void Replace::Eclock(void) {
+void Replace::Eclock(void)
+{
+    int j, i, k, l, next;
+    InitSpace("EClock");
+    for (k = 0, j = l = 0; k < PageNumber; k++)
+    {
+        next = ReferencePage[k];
+        //循环装入引用页
+        for (i = 0; i < FrameNumber; i++)
+            //检测引用页当前是否已在实存
+            if (next == PageFrames[i])
+            {
+                Referencebit[i] = 1; //引用位设置为1
+                count[i]++;
+                //如果被引用了两次，就把修改位设置成1
+                if (count[i] % 2 == 0)
+                    Modifybit[i] = 0; //修改位设置为0
+                else
+                    Modifybit[i] = 1;
+                break;
+            }
+        if (i < FrameNumber)
+        {
+            for (i = 0; i < FrameNumber; i++)
+                cout << PageFrames[i] << " ";
+            cout << endl;
+            continue;
+        }
+        if (Referencebit[j] == 1)
+            Referencebit[j] == 0;
+        if (Modifybit[j] == 1)
+            Modifybit[j] = 0;
+        int min = 10 * Referencebit[j] + Modifybit[j];
+        int index = j;
+        for (i = 0; i < FrameNumber; i++)
+        {
+            if (10 * Referencebit[i] + Modifybit[i] < min)
+            {
+                min = 10 * Referencebit[i] + Modifybit[i];
+                index = i;
+            }
+        }
+        EliminatePage[l] = PageFrames[index];
+        PageFrames[index] = next;
+        Referencebit[index] = 0;
+        Modifybit[index] = 1;
+        count[index] = 0;
+        FaultNumber++;             //引用页不在实存中，缺页数加1
+        j = (j + 1) % FrameNumber; //最先入页号循环下移
+        for (i = 0; i < FrameNumber; i++)
+            if (PageFrames[i] >= 0)
+                cout << PageFrames[i] << " ";
+        if (EliminatePage[l] >= 0)
+            cout << "->" << EliminatePage[l++] << endl;
+        else
+            cout << endl;
+    }
+    Report();
 }
 
 //最不经常使用置换算法
-void Replace::Lfu(void) {
+void Replace::Lfu(void)
+{
+    int j, i, k, l, next;
+    InitSpace("Lfu");
+    for (k = 0, j = l = 0; k < PageNumber; k++)
+    {
+        next = ReferencePage[k];
+        for (i = 0; i < FrameNumber; i++)
+            if (next == PageFrames[i])
+            {
+                count[i]++; //记录使用次数
+                break;
+            }
+        if (i < FrameNumber)
+        {
+            for (i = 0; i < FrameNumber; i++)
+                cout << PageFrames[i] << " ";
+            cout << endl;
+            continue;
+        }
+        FaultNumber++;
+        int min = count[0];
+        int index = 0;
+        for (i = 0; i < FrameNumber; i++)
+        {
+            if (count[i] < min)
+            {
+                min = count[i];
+                index = i;
+            }
+        }
+        EliminatePage[l] = PageFrames[index]; //最不经常使用的页号记入淘汰页数组
+        PageFrames[index] = next;
+        count[index] = 1;
+        for (i = 0; i < FrameNumber; i++)
+            if (PageFrames[i] >= 0)
+                cout << PageFrames[i] << " ";
+        if (EliminatePage[l] >= 0)
+            cout << "->" << EliminatePage[l++] << endl;
+        else
+            cout << endl;
+    }
+    Report();
 }
 
 //最经常使用置换算法
-void Replace::Mfu(void) {
+void Replace::Mfu(void)
+{
+    int j, i, k, l, next;
+    InitSpace("Mfu");
+    for (i = 0; i < FrameNumber; i++)
+        count[i] = 1;
+    for (k = 0, j = l = 0; k < PageNumber; k++)
+    {
+        next = ReferencePage[k];
+        for (i = 0; i < FrameNumber; i++)
+            if (next == PageFrames[i])
+            {
+                count[i]++;
+                break;
+            }
+        if (i < FrameNumber)
+        {
+            for (i = 0; i < FrameNumber; i++)
+                cout << PageFrames[i] << " ";
+            cout << endl;
+            continue;
+        }
+        FaultNumber++;
+        int max = count[0];
+        int index = 0;
+        for (i = 0; i < FrameNumber; i++)
+        {
+            if (count[i] > max)
+            {
+                max = count[i];
+                index = i;
+            }
+        }
+        EliminatePage[l] = PageFrames[index];
+        PageFrames[index] = next;
+        count[index] = 0;
+        for (i = 0; i < FrameNumber; i++)
+            if (PageFrames[i] >= 0)
+                cout << PageFrames[i] << " ";
+        if (EliminatePage[l] >= 0)
+            cout << "->" << EliminatePage[l++] << endl;
+        else
+            cout << endl;
+    }
+    Report();
 }
-
 
 int main(int argc, char *argv[])
 {
     Replace *vmpr = new Replace();
-    vmpr->Lru();
-    vmpr->Fifo();
+    // vmpr->Lru();
+    // vmpr->Fifo();
+    vmpr->Clock();
+    vmpr->Eclock();
+    vmpr->Lfu();
+    vmpr->Mfu();
     return 0;
 }

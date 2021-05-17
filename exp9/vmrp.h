@@ -22,4 +22,8 @@ private:
     int PageNumber;     //访问页数
     int FrameNumber;    //实存帧数
     int FaultNumber;    //失败页数
+    
+    int *Referencebit;  //引用位
+    int *count;         //记录使用次数
+    int *Modifybit;     //修改位
 };
