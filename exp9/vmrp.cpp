@@ -6,32 +6,38 @@ Replace::Replace()
     int i;
     //设定总得访问页数,并分配相应的引用页号和淘汰页号记录数组空间
     cout << "Please input page numbers :";
-    cin >> PageNumber;
-    ReferencePage = new int[sizeof(int) * PageNumber];
-    EliminatePage = new int[sizeof(int) * PageNumber];
-    //输入引用页号序列(页面走向),初始化引用页数组
+    cin >> PageNumber;                                 //存放要访问到的页号
+    ReferencePage = new int[sizeof(int) * PageNumber]; //访问页数
+    EliminatePage = new int[sizeof(int) * PageNumber]; //存放淘汰页号
     cout << "Please input reference page string :";
     for (i = 0; i < PageNumber; i++)
-        cin >> ReferencePage[i]; //引用页暂存引用数组
-    //设定内存实页数(帧数),并分配相应的实页号记录数组空间(页号栈)
+        cin >> ReferencePage[i];
     cout << "Please input page frames :";
-    cin >> FrameNumber;
-    PageFrames = new int[sizeof(int) * FrameNumber];
+    cin >> FrameNumber;                                //实存帧数
+    PageFrames = new int[sizeof(int) * FrameNumber];   //存放当前正在实存中的页号
+    Referencebit = new int[sizeof(int) * FrameNumber]; //引用位
+    count = new int[sizeof(int) * FrameNumber];
+    Modifybit = new int[sizeof(int) * FrameNumber]; //修改位
 }
 
-Replace::~Replace() {}
+Replace::~Replace(){}
 
 void Replace::InitSpace(char *MethodName)
 {
     int i;
     cout << endl
          << MethodName << endl;
-    FaultNumber = 0;
-    //引用还未开始,-1表示无引用页
+    FaultNumber = 0; //失败页数
+                     //引用还未开始,-1表示无引用页
     for (i = 0; i < PageNumber; i++)
-        EliminatePage[i] = -1;
+        EliminatePage[i] = -1; //淘汰页号初始都设为-1
     for (i = 0; i < FrameNumber; i++)
-        PageFrames[i] = -1;
+    {
+        PageFrames[i] = -1;  //存放当前正在实存中的页号
+        Referencebit[i] = 0; //未被使用引用位设置为0
+        count[i] = 0;        //计数
+        Modifybit[i] = 0;    //修改位初始为0
+    }
 }
 
 //分析统计选择的算法对于当前输入的页面走向的性能
@@ -53,15 +59,15 @@ void Replace::Report(void)
 void Replace::Lru(void)
 {
     int i, j, k, l, next;
-    InitSpace("LRU");
-    //循环装入引用页
-    for (k = 0, l = 0; k < PageNumber; k++)
+    InitSpace("LRU");                       //初始化页号记录
+                                            //循环装入引用页
+    for (k = 0, l = 0; k < PageNumber; k++) //l为淘汰页的标记
     {
         next = ReferencePage[k];
         //检测引用页当前是否已在实存
         for (i = 0; i < FrameNumber; i++)
         {
-            if (next == PageFrames[i])
+            if (next == PageFrames[i]) //与当前正在实存中的页号比较
             {
                 //引用页已在实存将其调整到页记录栈顶
                 next = PageFrames[i];
@@ -78,8 +84,7 @@ void Replace::Lru(void)
                 if (PageFrames[j] >= 0)
                     cout << PageFrames[j] << " ";
             cout << endl;
-            continue;
-            //继续装入下一页
+            continue; //继续装入下一页
         }
         else // 如果引用页还未放栈顶，则为缺页，缺页数加1
             FaultNumber++;
@@ -125,9 +130,10 @@ void Replace::Fifo(void)
         }
         //引用页不在实存中，缺页数加1
         FaultNumber++;
-        EliminatePage[l] = PageFrames[j]; //最先入页号记入淘汰页数组
-        PageFrames[j] = next;             //引用页号放最先入页号处
-        j = (j + 1) % FrameNumber;        //最先入页号循环下移
+        //最先入页号记入淘汰页数组
+        EliminatePage[l] = PageFrames[j];
+        PageFrames[j] = next;      //引用页号放最先入页号处
+        j = (j + 1) % FrameNumber; //最先入页号循环下移
         //报告当前实存页号和淘汰页号
         for (i = 0; i < FrameNumber; i++)
             if (PageFrames[i] >= 0)
@@ -137,7 +143,6 @@ void Replace::Fifo(void)
         else
             cout << endl;
     }
-    //分析统计选择的算法对于当前引用的页面走向的性能
     Report();
 }
 
@@ -163,8 +168,10 @@ void Replace::Clock(void)
             cout << endl;
             continue;
         }
-        if (Referencebit[j] == 1)         //如果引用位为1
-            Referencebit[j] == 0;         //在判断之后，重新设置成0
+        if (Referencebit[j] == 1) //如果引用位为1
+        {
+            Referencebit[j] == 0; //在判断之后，重新设置成0
+        }
         EliminatePage[l] = PageFrames[j]; //最先入页号记入淘汰页数组
         PageFrames[j] = next;             //引用页号放最先入页号处
         Referencebit[j] = 1;              //引用位设置为1
@@ -211,9 +218,13 @@ void Replace::Eclock(void)
             continue;
         }
         if (Referencebit[j] == 1)
+        {
             Referencebit[j] == 0;
+        }
         if (Modifybit[j] == 1)
+        {
             Modifybit[j] = 0;
+        }
         int min = 10 * Referencebit[j] + Modifybit[j];
         int index = j;
         for (i = 0; i < FrameNumber; i++)
@@ -335,6 +346,7 @@ void Replace::Mfu(void)
     }
     Report();
 }
+
 
 int main(int argc, char *argv[])
 {
